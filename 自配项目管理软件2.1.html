@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>自配项目记录表系统</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        .form-container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .record-row {
+            display: flex;
+            margin-bottom: 15px;
+            align-items: center;
+        }
+
+        .record-item {
+            margin-right: 10px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-size: 12px;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        input,
+        select {
+            padding: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        .storage-time {
+            width: 80px;
+        }
+
+        .config-date {
+            width: 150px;
+        }
+
+        .std-name {
+            width: 150px;
+        }
+
+        .storage-condition {
+            width: 120px;
+        }
+
+        .config-person {
+            width: 120px;
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        .expiration-date {
+            margin-left: 10px;
+            font-weight: bold;
+        }
+
+        .expired-today {
+            color: red;
+        }
+
+        .expiring-soon {
+            color: orange;
+        }
+
+        .normal {
+            color: green;
+        }
+
+        .add-button {
+            margin: 20px 0;
+        }
+
+        .export-button,
+        .print-button,
+        .save-button,
+        .delete-button {
+            margin: 20px 0;
+            display: inline-block;
+        }
+
+        .login-container {
+            max-width: 400px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .login-form {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .login-input {
+            margin-bottom: 15px;
+        }
+
+        /* 添加返回按钮样式 */
+        .back-button {
+            background-color: #f44336;
+            margin-bottom: 20px;
+        }
+
+        .back-button:hover {
+            background-color: #da190b;
+        }
+
+        /* 删除按钮样式 */
+        .delete-button {
+            background-color: #f44336;
+        }
+
+        .delete-button:hover {
+            background-color: #da190b;
+        }
+
+        /* 打印样式 */
+        @media print {
+            body {
+                background: #fff;
+            }
+
+            button {
+                display: none;
+            }
+
+            .record-row {
+                display: flex;
+                margin-bottom: 10px;
+                page-break-inside: avoid;
+            }
+
+            .record-item {
+                display: inline-block;
+                margin-right: 10px;
+                vertical-align: top;
+            }
+
+            .std-name {
+                width: 150px;
+            }
+
+            .config-date {
+                width: 120px;
+            }
+
+            .config-person {
+                width: 100px;
+            }
+
+            .storage-condition {
+                width: 100px;
+            }
+
+            .storage-time {
+                width: 100px;
+            }
+
+            .expiration-date {
+                display: none;
+            }
+
+            label {
+                display: none;
+            }
+
+            .print-content {
+                display: flex;
+                flex-wrap: wrap;
+            }
+
+            .print-item {
+                margin-right: 10px;
+                white-space: nowrap;
+            }
+
+            .header {
+                margin-bottom: 20px;
+                font-family: SimSun;
+                font-size: 12px;
+            }
+
+            .table-header {
+                margin-bottom: 20px;
+                font-family: SimSun;
+                font-size: 12px;
+                text-align: center;
+            }
+        }
+
+        /* 页面标题样式 */
+        .page-title {
+            font-family: SimSun;
+            font-size: 12px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="loginPage" class="login-container">
+        <h1>用户登录</h1>
+        <form class="login-form">
+            <div class="login-input">
+                <label for="username">登录名:</label>
+                <input type="text" id="username" required>
+            </div>
+            <button type="button" onclick="login()">登录系统</button>
+        </form>
+    </div>
+
+    <div id="projectPage" class="form-container" style="display: none;">
+        <!-- 添加返回按钮 -->
+        <button class="back-button" onclick="goBackToLogin()">返回登录页</button>
+        <h1>输入项目名称</h1>
+        <div id="projectNameInputs"></div>
+        <button onclick="addProjectNameInput()">添加项目</button>
+        <button onclick="printAllProjects()">打印所有项目记录</button>
+    </div>
+
+    <div id="recordPageTemplate" class="form-container" style="display: none;">
+        <!-- 添加返回按钮 -->
+        <button class="back-button" onclick="goBackToProjectPage(this.closest('.form-container'))">返回项目页</button>
+        <div class="page-title">
+            <div class="header">
+                上海市精神卫生中心 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;文件编号：SMHC/LAB-JL-ZP-12-04 第5版 第0次修改
+            </div>
+        </div>
+        <h1 class="projectTitle"></h1>
+        <div class="records"></div>
+        <button class="add-button" onclick="addNewRecord(this.closest('.form-container'))">添加新记录</button>
+        <button class="export-button" onclick="exportToExcel(this.closest('.form-container'))">导出为 Excel</button>
+        <button class="print-button" onclick="printRecords(this.closest('.form-container'))">打印记录</button>
+        <button class="save-button" onclick="saveDataToE(this.closest('.form-container'))">保存数据到E盘</button>
+        <button class="save-button" onclick="saveRecord(this.closest('.form-container'))">保存记录</button>
+    </div>
+
+    <script>
+        // 登录功能
+        function login() {
+            const username = document.getElementById('username').value;
+            if (!username) {
+                alert('请输入登录名');
+                return;
+            }
+            sessionStorage.setItem('username', username);
+            document.getElementById('loginPage').style.display = 'none';
+            document.getElementById('projectPage').style.display = 'block';
+            
+            // 检查是否有保存的PROJECT记录
+            const savedProjects = localStorage.getItem('projects');
+            if (savedProjects) {
+                const projects = JSON.parse(savedProjects);
+                projects.forEach(project => {
+                    addSavedProject(project);
+                });
+            }
+        }
+
+        // 检查是否已经登录
+        document.addEventListener('DOMContentLoaded', function () {
+            const savedUsername = sessionStorage.getItem('username');
+            if (savedUsername) {
+                document.getElementById('loginPage').style.display = 'none';
+                document.getElementById('projectPage').style.display = 'block';
+                
+                // 检查是否有保存的PROJECT记录
+                const savedProjects = localStorage.getItem('projects');
+                if (savedProjects) {
+                    const projects = JSON.parse(savedProjects);
+                    projects.forEach(project => {
+                        addSavedProject(project);
+                    });
+                }
+            }
+        });
+
+        let projectInputCount = 0;
+        let recordCount = 1;
+
+        function addProjectNameInput() {
+            projectInputCount++;
+            const projectNameInputs = document.getElementById('projectNameInputs');
+            const newInputDiv = document.createElement('div');
+            newInputDiv.className = 'record-row';
+            newInputDiv.innerHTML = `
+                <div class="record-item">
+                    <label for="projectName${projectInputCount}">项目名称:</label>
+                    <input type="text" id="projectName${projectInputCount}" required>
+                </div>
+                <button onclick="goToRecordPage(${projectInputCount})">进入页面</button>
+                <button onclick="saveProject(${projectInputCount})">保存项目</button>
+                <button onclick="deleteProject(${projectInputCount})" class="delete-button">删除项目</button>
+            `;
+            projectNameInputs.appendChild(newInputDiv);
+        }
+
+        function goToRecordPage(projectId) {
+            const projectName = document.getElementById(`projectName${projectId}`).value;
+            if (!projectName) {
+                alert('请输入项目名称');
+                return;
+            }
+
+            const template = document.getElementById('recordPageTemplate');
+            const newRecordPage = template.cloneNode(true);
+            newRecordPage.id = `recordPage${projectId}`;
+            newRecordPage.style.display = 'block';
+
+            const projectTitle = newRecordPage.querySelector('.projectTitle');
+            projectTitle.textContent = `${projectName} - 自配项目记录表`;
+
+            document.body.appendChild(newRecordPage);
+            document.getElementById('projectPage').style.display = 'none';
+            
+            // 检查是否有保存的记录
+            const savedRecord = localStorage.getItem(projectName);
+            if (savedRecord) {
+                const recordData = JSON.parse(savedRecord);
+                const recordsDiv = newRecordPage.querySelector('.records');
+                recordsDiv.innerHTML = '';
+                recordData.records.forEach((record, index) => {
+                    const newRecordDiv = document.createElement('div');
+                    newRecordDiv.className = 'record-row';
+                    newRecordDiv.innerHTML = `
+                        <div class="record-item std-name">
+                            <label for="stdName${index + 1}">项目名称:</label>
+                            <input type="text" id="stdName${index + 1}" value="${record.stdName}" readonly>
+                        </div>
+                        <div class="record-item config-date">
+                            <label for="configDate${index + 1}">配置日期:</label>
+                            <input type="date" id="configDate${index + 1}" value="${record.configDate}" required>
+                        </div>
+                        <div class="record-item config-person">
+                            <label for="configPerson${index + 1}">配置人:</label>
+                            <input type="text" id="configPerson${index + 1}" readonly value="${record.configPerson}">
+                        </div>
+                        <div class="record-item storage-condition">
+                            <label for="storageCondition${index + 1}">保存条件:</label>
+                            <select id="storageCondition${index + 1}">
+                                <option value="-20" ${record.storageCondition === '-20℃' ? 'selected' : ''}>-20℃</option>
+                                <option value="4" ${record.storageCondition === '4℃' ? 'selected' : ''}>4℃</option>
+                                <option value="room" ${record.storageCondition === '常温' ? 'selected' : ''}>常温</option>
+                                <option value="other" ${record.storageCondition === '其他' ? 'selected' : ''}>其他</option>
+                            </select>
+                        </div>
+                        <div class="record-item storage-time">
+                            <label for="storageTime${index + 1}">保存时间(天):</label>
+                            <input type="number" id="storageTime${index + 1}" value="${record.storageTime}" min="1" required>
+                        </div>
+                        <button onclick="calculateExpirationDate(${index + 1}, this.closest('.form-container'))">计算</button>
+                        <span class="expiration-date" id="expirationDate${index + 1}">到期日期: ${record.expirationDate}</span>
+                        <button class="delete-button" onclick="deleteRecord(this.closest('.record-row'), this.closest('.form-container'))">删除</button>
+                    `;
+                    recordsDiv.appendChild(newRecordDiv);
+                });
+                recordCount = recordData.records.length + 1;
+            }
+        }
+
+        function calculateExpirationDate(recordId, recordPage) {
+            const configDate = recordPage.querySelector(`#configDate${recordId}`).value;
+            const storageTime = parseInt(recordPage.querySelector(`#storageTime${recordId}`).value);
+            if (!configDate || isNaN(storageTime)) {
+                alert('请填写配置日期和保存时间');
+                return;
+            }
+            const configDateObj = new Date(configDate);
+            configDateObj.setDate(configDateObj.getDate() + storageTime);
+            const expirationDate = configDateObj.toISOString().split('T')[0];
+            const currentDate = new Date().toISOString().split('T')[0];
+            const diffTime = Math.ceil((new Date(expirationDate) - new Date(currentDate)) / (1000 * 60 * 60 * 24));
+            const expirationDateElement = recordPage.querySelector(`#expirationDate${recordId}`);
+            expirationDateElement.textContent = `到期日期: ${expirationDate}`;
+            if (diffTime <= 0) {
+                expirationDateElement.classList.add('expired-today');
+                expirationDateElement.classList.remove('expiring-soon', 'normal');
+            } else if (diffTime <= 3) {
+                expirationDateElement.classList.add('expiring-soon');
+                expirationDateElement.classList.remove('expired-today', 'normal');
+            } else {
+                expirationDateElement.classList.add('normal');
+                expirationDateElement.classList.remove('expired-today', 'expiring-soon');
+            }
+        }
+
+        function addNewRecord(recordPage) {
+            const recordsDiv = recordPage.querySelector('.records');
+            const savedUsername = sessionStorage.getItem('username');
+            const projectName = recordPage.querySelector('.projectTitle').textContent.split(' - ')[0];
+            const newRecordDiv = document.createElement('div');
+            newRecordDiv.className = 'record-row';
+            newRecordDiv.innerHTML = `
+                <div class="record-item std-name">
+                    <label for="stdName${recordCount}">项目名称:</label>
+                    <input type="text" id="stdName${recordCount}" value="${projectName}" readonly>
+                </div>
+                <div class="record-item config-date">
+                    <label for="configDate${recordCount}">配置日期:</label>
+                    <input type="date" id="configDate${recordCount}" required>
+                </div>
+                <div class="record-item config-person">
+                    <label for="configPerson${recordCount}">配置人:</label>
+                    <input type="text" id="configPerson${recordCount}" readonly value="${savedUsername}">
+                </div>
+                <div class="record-item storage-condition">
+                    <label for="storageCondition${recordCount}">保存条件:</label>
+                    <select id="storageCondition${recordCount}">
+                        <option value="-20">-20℃</option>
+                        <option value="4">4℃</option>
+                        <option value="room">常温</option>
+                        <option value="other">其他</option>
+                    </select>
+                </div>
+                <div class="record-item storage-time">
+                    <label for="storageTime${recordCount}">保存时间(天):</label>
+                    <input type="number" id="storageTime${recordCount}" min="1" required>
+                </div>
+                <button onclick="calculateExpirationDate(${recordCount}, this.closest('.form-container'))">计算</button>
+                <span class="expiration-date" id="expirationDate${recordCount}"></span>
+                <button class="delete-button" onclick="deleteRecord(this.closest('.record-row'), this.closest('.form-container'))">删除</button>
+            `;
+            recordsDiv.appendChild(newRecordDiv);
+            recordCount++;
+        }
+
+        function deleteRecord(recordRow, recordPage) {
+            if (confirm('确定要删除这条记录吗？')) {
+                recordRow.remove();
+                // 更新记录计数
+                recordCount = recordPage.querySelectorAll('.record-row').length + 1;
+            }
+        }
+
+        function exportToExcel(recordPage) {
+            const recordRows = recordPage.querySelectorAll('.record-row');
+            const table = document.createElement('table');
+            table.border = '1';
+            const headerRow = table.insertRow();
+            headerRow.insertCell().appendChild(document.createTextNode('项目名称'));
+            headerRow.insertCell().appendChild(document.createTextNode('配置日期'));
+            headerRow.insertCell().appendChild(document.createTextNode('配置人'));
+            headerRow.insertCell().appendChild(document.createTextNode('保存条件'));
+            headerRow.insertCell().appendChild(document.createTextNode('保存时间(天)'));
+            headerRow.insertCell().appendChild(document.createTextNode('到期日期'));
+            for (let i = 0; i < recordRows.length; i++) {
+                const row = table.insertRow();
+                const stdNameInput = recordRows[i].querySelector('.std-name input');
+                row.insertCell().appendChild(document.createTextNode(stdNameInput.value || ''));
+                const configDateInput = recordRows[i].querySelector('.config-date input');
+                row.insertCell().appendChild(document.createTextNode(configDateInput.value || ''));
+                const configPersonInput = recordRows[i].querySelector('.config-person input');
+                row.insertCell().appendChild(document.createTextNode(configPersonInput.value || ''));
+                const storageConditionSelect = recordRows[i].querySelector('.storage-condition select');
+                row.insertCell().appendChild(document.createTextNode(storageConditionSelect.options[storageConditionSelect.selectedIndex].text));
+                const storageTimeInput = recordRows[i].querySelector('.storage-time input');
+                row.insertCell().appendChild(document.createTextNode(storageTimeInput.value || ''));
+                const expirationDateSpan = recordRows[i].querySelector('.expiration-date');
+                row.insertCell().appendChild(document.createTextNode(expirationDateSpan.textContent.replace('到期日期: ', '') || ''));
+            }
+            const wb = XLSX.utils.table_to_book(table);
+            const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'binary' });
+            const blob = new Blob([s2ab(wbout)], { type: 'application/octet-stream' });
+            const downloadLink = document.createElement('a');
+            const projectName = recordPage.querySelector('.projectTitle').textContent.split(' - ')[0];
+            downloadLink.download = `${projectName}自配项目记录表.xlsx`;
+            downloadLink.href = URL.createObjectURL(blob);
+            document.body.appendChild(downloadLink);
+            downloadLink.click();
+            document.body.removeChild(downloadLink);
+        }
+
+        function s2ab(s) {
+            const buf = new ArrayBuffer(s.length);
+            const view = new Uint8Array(buf);
+            for (let i = 0; i < s.length; i++) view[i] = s.charCodeAt(i) & 0xFF;
+            return buf;
+        }
+
+        function printRecords(recordPage) {
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`<html><head><title>打印记录</title></head><body>`);
+            printWindow.document.write('<div class="header">');
+            printWindow.document.write('上海市精神卫生中心 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;文件编号：SMHC/LAB-JL-ZP-12-04 第5版 第0次修改<br>');
+            printWindow.document.write('<h2 style="text-align: center;">自配项目记录表</h2>');
+            printWindow.document.write('</div>');
+            printWindow.document.write('<div class="table-header">');
+            printWindow.document.write('</div>');
+            printWindow.document.write('<div class="print-content">');
+            const recordRows = recordPage.querySelectorAll('.record-row');
+            recordRows.forEach(row => {
+                printWindow.document.write('<div class="print-item">');
+                printWindow.document.write(`项目名称: ${row.querySelector('.std-name input').value}`);
+                printWindow.document.write(` 配置日期: ${row.querySelector('.config-date input').value}`);
+                printWindow.document.write(` 配置人: ${row.querySelector('.config-person input').value}`);
+                printWindow.document.write(` 保存条件: ${row.querySelector('.storage-condition select').options[row.querySelector('.storage-condition select').selectedIndex].text}`);
+                printWindow.document.write(` 保存时间(天): ${row.querySelector('.storage-time input').value}`);
+                printWindow.document.write(` 到期日期: ${row.querySelector('.expiration-date').textContent.replace('到期日期: ', '')}`);
+                printWindow.document.write('</div>');
+            });
+            printWindow.document.write('</div></body></html>');
+            printWindow.document.close();
+            printWindow.print();
+        }
+
+        // 保存数据到E盘的html-test文件夹
+        function saveDataToE(recordPage) {
+            const recordRows = recordPage.querySelectorAll('.record-row');
+            const records = [];
+            for (let i = 0; i < recordRows.length; i++) {
+                const stdName = recordRows[i].querySelector('.std-name input').value;
+                const configDate = recordRows[i].querySelector('.config-date input').value;
+                const configPerson = recordRows[i].querySelector('.config-person input').value;
+                const storageCondition = recordRows[i].querySelector('.storage-condition select').options[recordRows[i].querySelector('.storage-condition select').selectedIndex].text;
+                const storageTime = recordRows[i].querySelector('.storage-time input').value;
+                const expirationDate = recordRows[i].querySelector('.expiration-date').textContent.replace('到期日期: ', '');
+                records.push({
+                    stdName,
+                    configDate,
+                    configPerson,
+                    storageCondition,
+                    storageTime,
+                    expirationDate
+                });
+            }
+            const projectName = recordPage.querySelector('.projectTitle').textContent.split(' - ')[0];
+            const data = {
+                projectName,
+                records
+            };
+            const jsonData = JSON.stringify(data, null, 2);
+            const blob = new Blob([jsonData], { type: 'application/json' });
+            const downloadLink = document.createElement('a');
+            downloadLink.download = `${projectName}自配项目记录表.json`;
+            downloadLink.href = URL.createObjectURL(blob);
+            document.body.appendChild(downloadLink);
+            downloadLink.click();
+            document.body.removeChild(downloadLink);
+        }
+
+        // 保存记录到本地存储
+        function saveRecord(recordPage) {
+            const recordRows = recordPage.querySelectorAll('.record-row');
+            const records = [];
+            for (let i = 0; i < recordRows.length; i++) {
+                const stdName = recordRows[i].querySelector('.std-name input').value;
+                const configDate = recordRows[i].querySelector('.config-date input').value;
+                const configPerson = recordRows[i].querySelector('.config-person input').value;
+                const storageCondition = recordRows[i].querySelector('.storage-condition select').options[recordRows[i].querySelector('.storage-condition select').selectedIndex].text;
+                const storageTime = recordRows[i].querySelector('.storage-time input').value;
+                const expirationDate = recordRows[i].querySelector('.expiration-date').textContent.replace('到期日期: ', '');
+                records.push({
+                    stdName,
+                    configDate,
+                    configPerson,
+                    storageCondition,
+                    storageTime,
+                    expirationDate
+                });
+            }
+            const projectName = recordPage.querySelector('.projectTitle').textContent.split(' - ')[0];
+            const data = {
+                projectName,
+                records
+            };
+            localStorage.setItem(projectName, JSON.stringify(data));
+            alert(`记录已保存`);
+        }
+
+        // 保存PROJECT记录到本地存储
+        function saveProject(projectId) {
+            const projectName = document.getElementById(`projectName${projectId}`).value;
+            if (!projectName) {
+                alert('请输入项目名称');
+                return;
+            }
+            let projects = JSON.parse(localStorage.getItem('projects')) || [];
+            if (!projects.includes(projectName)) {
+                projects.push(projectName);
+                localStorage.setItem('projects', JSON.stringify(projects));
+            }
+        }
+
+        // 删除项目从本地存储
+        function deleteProject(projectId) {
+            const projectName = document.getElementById(`projectName${projectId}`).value;
+            if (!projectName) {
+                alert('请输入项目名称');
+                return;
+            }
+            if (confirm(`确定要删除项目: ${projectName} 吗？`)) {
+                let projects = JSON.parse(localStorage.getItem('projects')) || [];
+                if (projects.includes(projectName)) {
+                    projects = projects.filter(project => project !== projectName);
+                    localStorage.setItem('projects', JSON.stringify(projects));
+                    // 同时删除该项目的记录
+                    localStorage.removeItem(projectName);
+                    alert(`项目: ${projectName} 已删除`);
+                    location.reload();
+                } else {
+                    alert(`项目: ${projectName} 未保存`);
+                }
+            }
+        }
+
+        // 添加保存的PROJECT
+        function addSavedProject(projectName) {
+            projectInputCount++;
+            const projectNameInputs = document.getElementById('projectNameInputs');
+            const newInputDiv = document.createElement('div');
+            newInputDiv.className = 'record-row';
+            newInputDiv.innerHTML = `
+                <div class="record-item">
+                    <label for="projectName${projectInputCount}">项目名称:</label>
+                    <input type="text" id="projectName${projectInputCount}" value="${projectName}" readonly>
+                </div>
+                <button onclick="goToRecordPage(${projectInputCount})">进入页面</button>
+                <button onclick="saveProject(${projectInputCount})">保存项目</button>
+                <button onclick="deleteProject(${projectInputCount})" class="delete-button">删除项目</button>
+            `;
+            projectNameInputs.appendChild(newInputDiv);
+        }
+
+        // 返回登录页
+        function goBackToLogin() {
+            document.getElementById('projectPage').style.display = 'none';
+            document.getElementById('loginPage').style.display = 'block';
+        }
+
+        // 返回项目页
+        function goBackToProjectPage(recordPage) {
+            recordPage.style.display = 'none';
+            document.getElementById('projectPage').style.display = 'block';
+        }
+
+        // 新增打印所有项目记录的函数
+        function printAllProjects() {
+            const projects = JSON.parse(localStorage.getItem('projects')) || [];
+            if (projects.length === 0) {
+                alert('没有可打印的项目记录');
+                return;
+            }
+
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write('<html><head><title>打印所有项目记录</title></head><body>');
+            printWindow.document.write('<style>');
+            printWindow.document.write('.header { font-family: SimSun; font-size: 12px; margin-bottom: 20px; }');
+            printWindow.document.write('.project-page { page-break-after: always; }');
+            printWindow.document.write('.project-title { text-align: center; font-size: 18px; margin-bottom: 20px; }');
+            printWindow.document.write('.record-item { margin-bottom: 10px; }');
+            printWindow.document.write('</style>');
+            
+            projects.forEach((projectName, index) => {
+                const projectData = JSON.parse(localStorage.getItem(projectName));
+                if (projectData && projectData.records && projectData.records.length > 0) {
+                    printWindow.document.write('<div class="project-page">');
+                    printWindow.document.write('<div class="header">上海市精神卫生中心 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;文件编号：SMHC/LAB-JL-ZP-12-04 第5版 第0次修改</div>');
+                    printWindow.document.write('<div class="project-title">自配项目记录表 - ' + projectData.projectName + '</div>');
+                    projectData.records.forEach(record => {
+                        printWindow.document.write('<div class="record-item">项目名称: ' + record.stdName +
+                                                   ' 配置日期: ' + record.configDate +
+                                                   ' 配置人: ' + record.configPerson +
+                                                   ' 保存条件: ' + record.storageCondition +
+                                                   ' 保存时间(天): ' + record.storageTime +
+                                                   ' 到期日期: ' + record.expirationDate + '</div>');
+                        printWindow.document.write('<hr>');
+                    });
+                    printWindow.document.write('</div>');
+                }
+            });
+
+            printWindow.document.write('</body></html>');
+            printWindow.document.close();
+            printWindow.print();
+        }
+    </script>
+    <!-- 引入SheetJS库用于导出Excel -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js"></script>
+</body>
+
+</html>
